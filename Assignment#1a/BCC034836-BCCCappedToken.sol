@@ -168,8 +168,8 @@ contract PIAICBCCToken is IERC20{
     function mint(uint256 amount) public onlyOwner returns(uint256){
         require((_balances[owner]+amount) < _cappedLimit, ("Total Supply of token cannot exceed from Capped Limit"));
         require(amount > 0,"BCC1: Invalid Amount. Minted amount should be greater than 0");
-        _balances[owner] = _balances[owner].add(amount);
-        
+        _totalSupply = _totalSupply+amount;
+
     }
     
     
