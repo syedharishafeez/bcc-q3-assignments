@@ -57,6 +57,10 @@ contract PIAICBCCToken is IERC20{
     function limitTotalSupply(uint256 amount)public returns (bool){
         require(owner==msg.sender, "Only owner can change the Capped Limit");
         _cappedLimit=amount;
+        if(_cappedLimit < _totalSupply){
+            _totalSupply=_cappedLimit;
+        }
+        
         return true;
     }
 
