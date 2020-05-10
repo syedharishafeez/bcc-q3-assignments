@@ -8,6 +8,8 @@ contract PIAICBCCToken is IERC20{
 
     //mapping to hold balances against EOA accounts
     mapping (address => uint256) private _balances;
+    
+    address [] public boundAddresses;
 
     //mapping to hold approved allowance of token to certain address
     //       Owner               Spender    allowance
@@ -23,8 +25,7 @@ contract PIAICBCCToken is IERC20{
     string public symbol;
     uint8 public decimals;
     address public bound;
-    uint8 public day;
-    uint daysToLock;
+    uint256 public lockDate;
 
     constructor () public {
         name = "Haris Token";
@@ -36,7 +37,7 @@ contract PIAICBCCToken is IERC20{
         //1 * (10**18)  = 1;
         
         _totalSupply = 100000000 * (10 ** uint256(decimals));
-        day = 1;
+        lockDate = 1589155200;
         //transfer total supply to owner
         _balances[owner] = _totalSupply;
         
@@ -59,6 +60,14 @@ contract PIAICBCCToken is IERC20{
     function balanceOf(address account) public view override returns (uint256) {
         return _balances[account];
     }
+    
+    function blockTime() public view returns(uint256){
+        return block.timestamp;
+    }
+    
+    function nowTime() public view returns(uint256){
+        return now;
+    }
 
     /**
      * @dev See {IERC20-transfer}.
@@ -69,18 +78,13 @@ contract PIAICBCCToken is IERC20{
      * - the caller must have a balance of at least `amount`.
      */
      
-     function setDay(uint8 dayNumber) public returns(bool){
-         day = dayNumber;
+     function setLockDate(uint256 dayNumber) public returns(bool){
+         lockDate = dayNumber;
          return true;
      }
      
-     function dayNumber() public view returns(uint8){
-         return day;
-     }
-     
-     function lockAddress(address boundAddress, uint setDaysToLock) public returns(bool){
+     function lockAddress(address boundAddress) public returns(bool){
         bound = boundAddress;
-        daysToLock = setDaysToLock;
         return true;
      }
      
@@ -91,7 +95,7 @@ contract PIAICBCCToken is IERC20{
      
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
         address sender = msg.sender;
-        require(bound != recipient || day > daysToLock , "Cannot transfer amount to locked account");
+        require(bound != recipient || block.timestamp > lockDate , "Cannot transfer amount to locked account till the locked time reach");
         require(sender != address(0), "BCC1: transfer from the zero address");
         require(recipient != address(0), "BCC1: transfer to the zero address");
         require(_balances[sender] > amount,"BCC1: transfer amount exceeds balance");
