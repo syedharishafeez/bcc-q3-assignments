@@ -22,8 +22,9 @@ contract PIAICBCCToken is IERC20{
     string public symbol;
     uint8 public decimals;
     uint256 public tokensPerWei;
+    mapping (address => uint256) public _buyingTokenTime;
     
-    address public pricingManager;
+    address public delegatedPricingManager;
     
     constructor () public {
         name = "Haris Token";
@@ -63,16 +64,16 @@ contract PIAICBCCToken is IERC20{
         OwnershipTransferred(owner,account);
     }
     
-    function setPricingManager(address account)public isOwner returns(bool){
+    function delegatePricingManager(address account)public isOwner returns(bool){
         require(account!=address(0),"Not a valid account");
-        pricingManager=account;
+        delegatedPricingManager=account;
         return true;
     }
     
-    function returnToken(uint256 amount, uint8 daysAfterBuyingToken)public returns(bool){
-        require(daysAfterBuyingToken < 30, "You can only return token within a month");
+    function returnToken(uint256 amount)public returns(bool){
         require(msg.sender!=address(0),"Not a valid address");
         require(msg.sender!=owner,"owner cannot return amount");
+        require((now - _buyingTokenTime[msg.sender]) < 2592000, "You can only return token within a month"); //2592000 represents 30 days in seconds
         require(_balances[msg.sender] > amount, "You do not have that much amount");
         _balances[owner]=_balances[owner] + amount;
         _balances[msg.sender] = _balances[msg.sender] - amount;
@@ -109,12 +110,13 @@ contract PIAICBCCToken is IERC20{
          require(owner != msg.sender, "It is an owner account");
          require(msg.value > 0, "amount should be greater than 1 wei");
          _contractAmount[address(this)] = _contractAmount[address(this)] + msg.value*tokensPerWei;
+         _buyingTokenTime[msg.sender] = now;
          transfer(msg.sender, msg.value*tokensPerWei);
          return true;
      }
      
      function adjustPrice(uint256 amount) public returns(bool){
-         require(owner == msg.sender || pricingManager == msg.sender, "Only owner and pricing Manager can change the price");
+         require(owner == msg.sender || delegatedPricingManager == msg.sender, "Only owner and delegeted pricing Manager can change the price");
          tokensPerWei=amount;
          return true;
      }
