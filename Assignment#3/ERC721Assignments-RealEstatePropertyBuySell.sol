@@ -1,5 +1,3 @@
-// Register a property and define property basevalue is done
-
 pragma solidity ^0.6.0;
 
 
